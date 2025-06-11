@@ -25,7 +25,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.6.0 # You can specify a different version if needed
+          terraform_version: 1.6.0
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -37,28 +37,32 @@ jobs:
       - name: Terraform Init
         id: init
         run: terraform init
+        working-directory: terraform
 
       - name: Terraform Plan
         id: plan
         run: terraform plan -no-color -input=false -var="VNC_USERNAME=${{ github.event.inputs.vnc_username }}" -var="VNC_PASSWORD=${{ github.event.inputs.vnc_password }}"
+        working-directory: terraform
 
       - name: Terraform Apply
         id: apply
         run: terraform apply -auto-approve -input=false -var="VNC_USERNAME=${{ github.event.inputs.vnc_username }}" -var="VNC_PASSWORD=${{ github.event.inputs.vnc_password }}"
+        working-directory: terraform
 
       - name: Get Terraform Output
         run: |
           terraform output -raw instance_public_ip > public_ip.txt
           terraform output -raw instance_private_ip > private_ip.txt
+        working-directory: terraform
 
       - name: Upload Public IP as artifact
         uses: actions/upload-artifact@v4
         with:
           name: instance-public-ip
-          path: public_ip.txt
+          path: terraform/public_ip.txt
 
       - name: Upload Private IP as artifact
         uses: actions/upload-artifact@v4
         with:
           name: instance-private-ip
-          path: private_ip.txt
+          path: terraform/private_ip.txt
